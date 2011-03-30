@@ -1,0 +1,15 @@
+[
+  {
+      "id": "mlb_user",
+      "type": "text",
+      "label": "Username",
+      "default": "" 
+  },
+  {
+      "id": "mlb_pass",
+      "type": "text",
+      "label": "Password",
+      "default": "",
+      "option": "hidden" 
+  }
+]
