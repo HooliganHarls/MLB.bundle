@@ -1,4 +1,4 @@
-import re, datetime,httplib
+import re, datetime,httplib, urllib,urllib2 
 
 ####################################################################################################
 
@@ -44,6 +44,7 @@ def MainMenu():
     dir.Append(Function(DirectoryItem(Schedule, "Schedule"), url = MLB_Schedule))
     
     dir.Append(PrefsItem("Preferences"))
+    getPrefs()
     return dir
 
 ####################################################################################################
@@ -54,29 +55,25 @@ def getPrefs():
     
     
     if Prefs['mlb_user'] and Prefs['mlb_pass']:
-        try:
-            
-            url='https://secure.mlb.com/account/topNavLogin.jsp'
-            req = HTTP.Request(url, values=dict(
-            successRedirect = "http://mlb.mlb.com/shared/account/v2/login_success.jsp?callback=l1300638004681",
+       
+        
+            values=dict(successRedirect = "http://mlb.mlb.com/shared/account/v2/login_success.jsp?callback=l1300638004681",
             errorRedirect = "http://mlb.mlb.com/account/quick_login_hdr.jsp?error=true&successRedirect=http%3A%2F%2Fmlb.mlb.com%2Fshared%2Faccount%2Fv2%2Flogin_success.jsp%253Fcallback%253Dl1300638004681&callback=l1300638004681&stylesheet=%2Fstyle%2Faccount_management%2FmyAccountMini.css&submitImage=%2Fshared%2Fcomponents%2Fgameday%2Fv4%2Fimages%2Fbtn-login.gif&errorRedirect=http://mlb.mlb.com/account/quick_login_hdr.jsp%3Ferror%3Dtrue%26successRedirect%3Dhttp%253A%252F%252Fmlb.mlb.com%252Fshared%252Faccount%252Fv2%252Flogin_success.jsp%25253Fcallback%25253Dl1300638004681%26callback%3Dl1300638004681%26stylesheet%3D%252Fstyle%252Faccount_management%252FmyAccountMini.css%26submitImage%3D%252Fshared%252Fcomponents%252Fgameday%252Fv4%252Fimages%252Fbtn-login.gif",
             emailAddress = Prefs['mlb_user'],
             password = Prefs['mlb_pass'],
             submit="Login"
-            ))
-            Log(req)
-            req=str(req)
-            title=req.split('<title>')[-1]
-            title=title.split('</title>')[0]
-            Log(title)
-            if title=="Login Success":
-                title=title
+            )
+            url = 'https://secure.mlb.com/account/topNavLogin.jsp'
+
+            data = urllib.urlencode(values)
+            content=HTML.ElementFromString(urllib2.urlopen(url, data).read()).xpath('//title')[0].text
+            Log(content)
+            if content == "Login Success":
                 Log("Success")
             else:
-                title=title
-                Log("Fail")
-        except:
-            pass
+                Log("failed")
+
+        
 ####################################################################################################
 def Schedule(sender, url):
     dir= MediaContainer(viewGroup="List")
@@ -158,7 +155,7 @@ def Standings(sender, url):
 ####################################################################################################
 def Scoreboard(sender, url):
     Log(Prefs)
-
+    getPrefs()
     url=url
     
     now = datetime.datetime.now()
@@ -168,6 +165,11 @@ def Scoreboard(sender, url):
     month=now.strftime("%m")
     Log(month)
     day=now.strftime("%d")
+    day=int(day)-1
+    if day < 10:
+        day="0"+str(day)
+    else:
+        day=str(day)
     Log(day)
     
     dirtitle=sender.itemTitle+' '+month+'/'+day+'/'+year
@@ -192,7 +194,7 @@ def Scoreboard(sender, url):
         status=game['status']['status']
         time=game['time_hm_lg']
         tz=game['tz_hm_lg_gen']
-        
+        status="Final"
         Log(status)
         
         if status=="Preview":
@@ -201,25 +203,19 @@ def Scoreboard(sender, url):
             url=url
             summary=""
             dir.Append(Function(DirectoryItem(Scoreboard, title=title,thumb=thumb,subtitle=sub), url = url))
-        elif status=="media archive":
+        elif status=="media archive" or status=="Final":
             title=away_city+' '+away_name+ ' @ '+ home_city+' '+home_name
             sub='Highlights'
             summary=""
-            id=game['game_media']['media']['calendar_event_id']
-            id=id.split('-')[1]
-            url='http://mlb.mlb.com/search/media.jsp?game_pk='+id
-            dir.Append(Function(DirectoryItem(Videos, title=title,thumb=thumb,subtitle=sub), url = url))
-        elif status=="Final":
-            title=away_city+' '+away_name+ ' @ '+ home_city+' '+home_name
-            sub='Highlights'
-            summary=""
+            Log(sub)
+            thumb=""
             try:
-                id=game['game_media']['media']['calendar_event_id']
-                id=id.split('-')[1]
-                url='http://mlb.mlb.com/search/media.jsp?game_pk='+id  
-                dir.Append(Function(DirectoryItem(Videos, title=title,thumb=thumb,subtitle=sub), url = url))  
-            except:pass
-        elif status=="In Progress":
+                id=game['game_media']['links']['mlbtv']
+                id=id.split("id: '")[-1].split("',")[0]
+            except: id=""
+            url='http://mlb.mlb.com/flash/mediaplayer/v4.2/R2/MP4.jsp?calendar_event_id='+id+'&content_id=&media_id=&view_key=&media_type=video&source=MLB&sponsor=MLB&clickOrigin=&affiliateId=&team=mlb&'
+            dir.Append(WebVideoItem(url, title=title, subtitle=sub,thumb=thumb))
+        elif status=="In Progress" or status=="Warmup" or status=="Pre-Game":
             inning=game['status']['inning']
             isTop=game['status']['top_inning']
             if isTop=="N":
@@ -298,6 +294,16 @@ def Scoreboard(sender, url):
             
             url='http://mlb.mlb.com/flash/mediaplayer/v4.2/R2/MP4.jsp?calendar_event_id='+id+'&content_id=&media_id=&view_key=&media_type=video&source=MLB&sponsor=MLB&clickOrigin=&affiliateId=&team=mlb&'
             dir.Append(WebVideoItem(url, title=title, subtitle=sub,thumb=thumb))
+        else:
+            title=away_city+' '+away_name+ ' @ '+ home_city+' '+home_name
+            sub='Highlights'
+            summary=""
+            try:
+                id=game['game_media']['media']['calendar_event_id']
+                id=id.split('-')[1]
+                url='http://mlb.mlb.com/search/media.jsp?game_pk='+id  
+                dir.Append(Function(DirectoryItem(Videos, title=title,thumb=thumb,subtitle=sub), url = url))  
+            except:pass
         Log(title)
         Log(url)
              
@@ -306,7 +312,7 @@ def Scoreboard(sender, url):
     
 ####################################################################################################
 def Videos(sender, url):
-    dir = MediaContainer(title2=sender.itemTitle,httpcookies=HTML.Getcookies(url))
+    dir = MediaContainer(title2=sender.itemTitle,httpcookies=HTML.getCookies(url))
     url=url
     id=url.split('game_pk=')[-1]
     url='http://mlb.mlb.com/ws/search/MediaSearchService?start=0&site=mlb&hitsPerPage=12&hitsPerSite=10&type=json&c_id=&src=vpp&sort=desc&sort_type=custom&game='+id
