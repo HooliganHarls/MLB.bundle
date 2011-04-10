@@ -33,10 +33,8 @@
 			<action>
                 <pause time="1000" />
                 <!-- Visit this page to check if logged in -->
-                <visit url="https://secure.mlb.com/account/topNavLogin.jsp" />
-                <!--let the page load -->
-                <!-- ...then goto the 'check-for-auth' state -->
-				<goto state="pre-auth" />
+                <visit url="http://mlb.com/index.jsp/enterworkflow.do?flowId=registration.ajax.wizard&amp;c_id=mlb" />
+				<goto state="logcheck" />
 			</action>
 		</event>
 	</state>
@@ -45,10 +43,22 @@
 		<event>
 			<condition>
 				<!-- Wait for the DOM to load... -->
-				<javascript script="login = $('body').length == 1 ? 1 : 0" matches="1" />
+				<condition name="need-to-login" />
 			</condition>
 			<action>
 				<goto state="logcheck" />
+			</action>
+		</event>
+	</state>
+    
+    <state name="pre-play">
+		<event>
+			<condition>
+				<!-- Wait for the DOM to load... -->
+				<condition name="no-login" />
+			</condition>
+			<action>
+				<goto state="playing" />
 			</action>
 		</event>
 	</state>
@@ -60,8 +70,9 @@
 				<javascript script="title = $('title').text = 'Login Success' ? 1 : 0" matches="1" />
 			</condition>
 			<action>
-				<goto state="recheck" />
-			</action>
+                <pause time="500" />
+                <visit url="${url}" />
+            </action>
 		</event>
 		<event>
 			<condition>
@@ -83,7 +94,8 @@
 				<condition name="no-login" />
 			</condition>
 			<action>
-				<goto state="playing" />
+                <visit url="${url}" />
+                <goto state="recheck" />
 			</action>
 		</event>
 		<event>
@@ -123,54 +135,14 @@
 		</event>
 	</state>
 
-    <state name="playing">
-        <!-- showing the login form -->
-
-
-
-
-        <!-- message: hd alert -->
-        <event>
-            <condition>
-                <and>
-                    <javascript script="login = $('html').length == 1 ? 1 : 0" matches="1" />
-                </and>
-            </condition>
-            <action>
-                <goto state="playing"/>
-            </action>
-        </event>
-
-        <!-- pause button -->
-        <event>
-            <condition>
-                <command name="pause"/>
-            </condition>
-            <action>
-                <move x="396" y="510"/>
-                <pause time="500"/>
-                <click x="396" y="510"/>
-                <move x="0" y="0"/>
-                <goto state="paused"/>
-            </action>
-        </event>
-    </state>
-
-    <!-- paused -->
-    <state name="paused">
-        <!-- play button -->
-        <event>
-            <condition>
-                <command name="play"/>
-            </condition>
-            <action>
-                <move x="396" y="510"/>
-                <pause time="500"/>
-                <click x="396" y="510"/>
-                <move x="0" y="0"/>
-
-                <goto state="playing"/>
-            </action>
-        </event>
-    </state>
+	<state name="playing">
+		<event>
+			<condition>
+				<javascript script="true ? 1 : 0" matches="1" />
+			</condition>
+			<action>
+				<!-- nothing to do -->
+			</action>
+		</event>
+	</state>
 </site>
