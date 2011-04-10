@@ -210,9 +210,10 @@ def Scoreboard(sender, url):
             Log(sub)
             thumb=""
             try:
-                id=game['game_media']['links']['mlbtv']
-                id=id.split("id: '")[-1].split("',")[0]
-            except: id=""
+                id=game['links']['mlbtv']
+                Log(id)
+                id=id.split("id:'")[-1].split("',")[0]
+            except: id="no-id"
             url='http://mlb.mlb.com/flash/mediaplayer/v4.2/R2/MP4.jsp?calendar_event_id='+id+'&content_id=&media_id=&view_key=&media_type=video&source=MLB&sponsor=MLB&clickOrigin=&affiliateId=&team=mlb&'
             dir.Append(WebVideoItem(url, title=title, subtitle=sub,thumb=thumb))
         elif status=="In Progress" or status=="Warmup" or status=="Pre-Game":

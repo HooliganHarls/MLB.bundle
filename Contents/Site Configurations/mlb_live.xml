@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<site site="http://mlb.mlb.com"
-    plugin="http://mlb.mlb.com/flash/mediaplayer/v4.2/R2/MediaPlayer4.swf"
+<site site="http://.*mlb\.com"
+	    plugin="http://.*mlb\.com.*player.*\.swf"
     identifier="com.plexapp.plugins.harleyball"
     initialState="wait-for-frame-load"
 	version="1.0">
@@ -55,9 +55,10 @@
 		<event>
 			<condition>
 				<!-- Wait for the DOM to load... -->
-				<condition name="no-login" />
+				<javascript script="true ? 1 : 0" matches="1" />
 			</condition>
 			<action>
+                <visit url="${url}" />
 				<goto state="playing" />
 			</action>
 		</event>
@@ -71,7 +72,6 @@
 			</condition>
 			<action>
                 <pause time="500" />
-                <visit url="${url}" />
             </action>
 		</event>
 		<event>
@@ -89,15 +89,15 @@
     
 	<state name="logcheck">
 		<event>
-			<condition>
-				<!-- If we don't need to login, goto state 'playing' -->
-				<condition name="no-login" />
+            <condition>
+				<and>
+                    <condition name="no-login" />
+				</and>
 			</condition>
 			<action>
-                <visit url="${url}" />
-                <goto state="recheck" />
-			</action>
-		</event>
+                <goto state="pre-play" />
+            </action>
+        </event>
 		<event>
 			<!-- If we *do* need to login, fill in the form and post it -->
 			<condition>
