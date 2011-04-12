@@ -3,7 +3,7 @@
 	    plugin="http://.*mlb\.com.*player.*\.swf"
     identifier="com.plexapp.plugins.harleyball"
     initialState="wait-for-frame-load"
-	version="1.0">
+	version="1.0" manualLock="true" >
 
 	<crop x="0" y="102" width="800" height="450" />
 
@@ -58,6 +58,7 @@
 				<javascript script="true ? 1 : 0" matches="1" />
 			</condition>
 			<action>
+                <lockPlugin/>
                 <visit url="${url}" />
 				<goto state="playing" />
 			</action>
@@ -135,14 +136,29 @@
 		</event>
 	</state>
 
-	<state name="playing">
-		<event>
-			<condition>
-				<javascript script="true ? 1 : 0" matches="1" />
-			</condition>
-			<action>
-				<!-- nothing to do -->
-			</action>
-		</event>
-	</state>
+    <state name="playing">
+        <event>
+            <condition>
+                <command name="pause" />
+            </condition>
+            <action>
+                <click x="36" y="370" />
+                <goto state="paused" />
+            </action>
+        </event>
+    </state>
+        
+        <!-- PAUSED -->
+    <state name="paused">
+        <event>
+            <condition>
+                <command name="play" />
+            </condition>
+            <action>
+                <click x="36" y="370" />
+                <goto state="playing" />
+            </action>
+        </event>
+    </state>
+
 </site>
