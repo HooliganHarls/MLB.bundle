@@ -68,7 +68,7 @@
 		<event>
 			<condition>
 				<!-- Wait for the DOM to load... -->
-				<frameLoaded/>
+				<javascript script="true ? 1 : 0" matches="1" />
 			</condition>
 			<action>
                 <lockPlugin/>
