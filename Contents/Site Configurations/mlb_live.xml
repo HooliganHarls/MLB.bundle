@@ -27,14 +27,12 @@
 	<state name="wait-for-frame-load">
 		<event>
 			<condition>
-				<!-- Wait for the DOM to load... -->
-				<frameLoaded />
+                <frameLoaded />
 			</condition>
 			<action>
                 <pause time="1000" />
-                <!-- Visit this page to check if logged in -->
                 <visit url="http://mlb.com/index.jsp/enterworkflow.do?flowId=registration.ajax.wizard&amp;c_id=mlb" />
-				<goto state="logcheck" />
+                <goto state="logcheck" />
 			</action>
 		</event>
 	</state>
@@ -65,14 +63,13 @@
 	</state>
     
     <state name="pre-load">
-		<event>
-			<condition>
-				<!-- Wait for the DOM to load... -->
-				<javascript script="true ? 1 : 0" matches="1" />
-			</condition>
+        <event>
+            <condition>
+                <javascript script="true ? 1 : 0" matches="1" />
+            </condition>
 			<action>
                 <lockPlugin/>
-				<goto state="playing" />
+                <goto state="playing" />
 			</action>
 		</event>
 	</state>

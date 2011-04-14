@@ -230,6 +230,9 @@ def Scoreboard(sender, url):
             home_score=game['linescore']['r']['home']
             away_score=game['linescore']['r']['away']
             
+            
+            
+            
             home_e=game['linescore']['e']['home']
             away_e=game['linescore']['e']['away']
             
