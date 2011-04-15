@@ -57,7 +57,10 @@
 				<condition name="need-to-login" />
 			</condition>
 			<action>
+				<visit url="${url}" />
+                <pause time="1000" />
     			<lockPlugin />
+                <pause time="1000" />
 				<goto state="playing" />
 			</action>
 		</event>
@@ -69,10 +72,10 @@
             </condition>
 			<action>
 				<run script="var post_url='https://secure.mlb.com/account/topNavLogin.jsp';var post_data={emailAddress:'${mlb_user}',password:'${mlb_pass}', successRedirect:'http://mlb.mlb.com/shared/account/v2/login_success.jsp%3Fcallback%3Dl1300638004681',errorRedirect:'http://mlb.mlb.com/account/quick_login_hdr.jsp?error=true&amp;successRedirect=http%3A%2F%2Fmlb.mlb.com%2Fshared%2Faccount%2Fv2%2Flogin_success.jsp%253Fcallback%253Dl1300638004681&amp;callback=l1300638004681&amp;stylesheet=%2Fstyle%2Faccount_management%2FmyAccountMini.css&amp;submitImage=%2Fshared%2Fcomponents%2Fgameday%2Fv4%2Fimages%2Fbtn-login.gif',login:'1'};jQuery.post(post_url,post_data);" />
-				<pause time="1000" />
 				<visit url="${url}" />
                 <pause time="1000" />
 				<lockPlugin />
+                <pause time="1000" />
 				<goto state="playing" />
 			</action>
 		</event>
