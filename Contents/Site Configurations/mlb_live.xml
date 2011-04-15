@@ -1,150 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site site="http://.*mlb\.com"
-	    plugin="http://.*mlb\.com.*player.*\.swf"
+	    plugin="http://mlb.mlb.com/flash/mediaplayer/v4.2/R2/MediaPlayer4.swf?"
     identifier="com.plexapp.plugins.harleyball"
     initialState="wait-for-frame-load"
-	version="1.0" manualLock="true" >
+	version="1.0" manualLock="true">
+    
 
 	<crop x="0" y="102" width="800" height="450" />
 
 	<!-- The condition we use several times from within states to check if we're logged in or not -->
-	<condition name="need-to-login">
+	<condition name="paused">
 		<and>
-            
-			<!-- Return true if we're logged in -->
-			<javascript script="login = $('a.loggedOut').length == 1 ? 1 : 0" matches="1" />
-		</and>
-	</condition>
-    
-    <condition name="no-login">
-		<and>
-            
-			<!-- Return true if we're logged in -->
-			<javascript script="login = $('a.loggedIn').length == 1 ? 1 : 0" matches="1" />
+            <javascript script="true ? 1 : 0" matches="1" />
 		</and>
 	</condition>
 
+	<seekbar type="simple">
+		<start x="75" y="360"/>
+		<end x="714" y="360"/>
+		<played>
+			<condition>
+				<or>
+					<color rgb="898989"/>
+					<color rgb="909090"/>
+					<color rgb="888888"/>
+				</or>
+			</condition>
+		</played>
+	</seekbar>
+
+	<!-- We're not logged in, and we have the prefs -->
+	<condition name="need-to-login">
+		<and>
+            <javascript script="login = $('a.loggedIn').length == 1 ? 1 : 0" matches="1" />
+		</and>
+	</condition>
+
+	<!-- Wait for page to load -->
 	<state name="wait-for-frame-load">
 		<event>
 			<condition>
-                <frameLoaded />
+				<frameLoaded />
 			</condition>
 			<action>
-                <pause time="1000" />
                 <visit url="http://mlb.com/index.jsp/enterworkflow.do?flowId=registration.ajax.wizard&amp;c_id=mlb" />
-                <goto state="logcheck" />
+				<pause time="30" />
+				<goto state="check-for-auth" />
 			</action>
 		</event>
 	</state>
-
- 	<state name="pre-auth">
+	
+	<!-- See if we're logged in -->
+	<state name="check-for-auth">
 		<event>
 			<condition>
-				<!-- Wait for the DOM to load... -->
 				<condition name="need-to-login" />
 			</condition>
 			<action>
-				<goto state="logcheck" />
-			</action>
-		</event>
-	</state>
-    
-    <state name="pre-play">
-		<event>
-			<condition>
-				<!-- Wait for the DOM to load... -->
-				<javascript script="true ? 1 : 0" matches="1" />
-			</condition>
-			<action>
-                <visit url="${url}" />
-				<goto state="pre-load" />
-			</action>
-		</event>
-	</state>
-    
-    <state name="pre-load">
-        <event>
-            <condition>
-                <javascript script="true ? 1 : 0" matches="1" />
-            </condition>
-			<action>
-                <lockPlugin/>
-                <goto state="playing" />
-			</action>
-		</event>
-	</state>
-    
-    <state name="pre-check">
-		<event>
-			<condition>
-				<!-- Wait for the DOM to load... -->
-				<javascript script="title = $('title').text = 'Login Success' ? 1 : 0" matches="1" />
-			</condition>
-			<action>
-                <pause time="500" />
-            </action>
-		</event>
-		<event>
-			<condition>
-				<!-- Wait for the DOM to load... -->
-                <not>
-                    <javascript script="title = $('title').text == 'Login Success' ? 1 : 0" matches="1" />
-                </not>
-            </condition>
-			<action>
-				<goto state="pre-check" />
-			</action>
-		</event>
-	</state>
-    
-	<state name="logcheck">
-		<event>
-            <condition>
-				<and>
-                    <condition name="no-login" />
-				</and>
-			</condition>
-			<action>
-                <goto state="pre-play" />
-            </action>
-        </event>
-		<event>
-			<!-- If we *do* need to login, fill in the form and post it -->
-			<condition>
-                <and>
-                    <condition name="need-to-login" />
-                </and>
-            </condition>
-			<action>
-                <run script="var post_url='https://secure.mlb.com/account/topNavLogin.jsp';var post_data={emailAddress:'${mlb_user}',password:'${mlb_pass}', successRedirect:'http://mlb.mlb.com/shared/account/v2/login_success.jsp%3Fcallback%3Dl1300638004681',errorRedirect:'http://mlb.mlb.com/account/quick_login_hdr.jsp?error=true&amp;successRedirect=http%3A%2F%2Fmlb.mlb.com%2Fshared%2Faccount%2Fv2%2Flogin_success.jsp%253Fcallback%253Dl1300638004681&amp;callback=l1300638004681&amp;stylesheet=%2Fstyle%2Faccount_management%2FmyAccountMini.css&amp;submitImage=%2Fshared%2Fcomponents%2Fgameday%2Fv4%2Fimages%2Fbtn-login.gif',login:'1'};jQuery.post(post_url,post_data);" />
-                <goto state="pre-check" />
-			</action>
-		</event>
-	</state>
-    
-    <state name="recheck">
-		<event>
-			<condition>
-				<!-- If we don't need to login, goto state 'playing' -->
-				<condition name="no-login" />
-			</condition>
-			<action>
+    			<lockPlugin />
 				<goto state="playing" />
 			</action>
 		</event>
 		<event>
-			<!-- If we *do* need to login, fill in the form and post it -->
 			<condition>
-                <and>
+                <not>
                     <condition name="need-to-login" />
-                </and>
+                </not>
             </condition>
 			<action>
-                <goto state="end" param="Please check your username and password." />
+				<run script="var post_url='https://secure.mlb.com/account/topNavLogin.jsp';var post_data={emailAddress:'${mlb_user}',password:'${mlb_pass}', successRedirect:'http://mlb.mlb.com/shared/account/v2/login_success.jsp%3Fcallback%3Dl1300638004681',errorRedirect:'http://mlb.mlb.com/account/quick_login_hdr.jsp?error=true&amp;successRedirect=http%3A%2F%2Fmlb.mlb.com%2Fshared%2Faccount%2Fv2%2Flogin_success.jsp%253Fcallback%253Dl1300638004681&amp;callback=l1300638004681&amp;stylesheet=%2Fstyle%2Faccount_management%2FmyAccountMini.css&amp;submitImage=%2Fshared%2Fcomponents%2Fgameday%2Fv4%2Fimages%2Fbtn-login.gif',login:'1'};jQuery.post(post_url,post_data);" />
+				<pause time="1000" />
+				<visit url="${url}" />
+                <pause time="1000" />
+				<lockPlugin />
+				<goto state="playing" />
 			</action>
 		</event>
 	</state>
-
+	
+	<!-- PLAYING -->
     <state name="playing">
         <event>
             <condition>
@@ -168,6 +102,6 @@
                 <goto state="playing" />
             </action>
         </event>
-    </state>
-
+    </state>	
 </site>
+
